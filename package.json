@@ -1,0 +1,28 @@
+{
+  "name": "vtrack",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "firebase": "^5.2.0",
+    "geolocation-utils": "^1.1.1",
+    "react": "^16.4.1",
+    "react-activity": "^1.2.2",
+    "react-bootstrap-table": "^4.3.1",
+    "react-datetime-picker": "^1.4.1",
+    "react-dom": "^16.4.1",
+    "react-geoinput": "^1.0.3",
+    "react-google-maps": "^9.4.5",
+    "react-router-dom": "^4.3.1",
+    "react-scripts": "1.1.4",
+    "react-select": "^1.2.1",
+    "react-simple-input": "^0.4.1",
+    "react-simple-timefield": "^2.0.0",
+    "react-time-input": "^0.0.19"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test --env=jsdom",
+    "eject": "react-scripts eject"
+  }
+}
