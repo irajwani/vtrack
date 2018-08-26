@@ -18,6 +18,13 @@ var icons = [
       iconURLPrefix + 'yellow-dot.png'
     ];
 
+ var car_icons = [
+  require('../resources/img/red_car.png'),
+  require('../resources/img/green_car.png'),
+  require('../resources/img/blue_car.png'),
+  require('../resources/img/orange_car.png')
+ ]
+
 var colors = [
   "#dd2f18", "#06a819", "#075aba", "#c97d0c", "#c10faf", "#e04c98", "#dbd962"
 ]
@@ -175,11 +182,6 @@ const MyMapComponent = compose(
     )
     )
   
-  
-    
-  
-  
-  
   }
 
   {
@@ -206,7 +208,9 @@ const MyMapComponent = compose(
 
     props.data.map( (m, index) => (
       
-          <Marker key={index} position={{ lat: m.currentLocation.lat, lng: m.currentLocation.lon }} onClick={ (e) => {console.log(e.latLng.lat())} }> 
+          <Marker key={index} position={{ lat: m.currentLocation.lat, lng: m.currentLocation.lon }} 
+            onClick={ (e) => {console.log(e.latLng.lat())} }
+            icon = { car_icons[index] }  > 
           
         
             <InfoWindow key={index} position={{ lat: m.currentLocation.lat, lng: m.currentLocation.lon }}> 
@@ -219,21 +223,6 @@ const MyMapComponent = compose(
     )
     )
   }
-
-  <Polyline
-  path= {[
-          {lat: 37.772, lng: -122.214},
-          {lat: 21.291, lng: -157.821},
-          {lat: -18.142, lng: 178.431},
-          {lat: -27.467, lng: 153.027}
-        ]}
-  options = { {
-    
-          geodesic: true,
-          strokeColor: '#FF0000',
-          strokeOpacity: 1.0,
-          strokeWeight: 0.5
-  } } />
      
 
   </GoogleMap>
@@ -312,7 +301,6 @@ class DriversMap extends Component {
   
 
   render() {
-    console.log( '#' + (Math.random().toString(16) + "000000").substring(2,8) );
     console.log(this.state);
     console.log('Initializing Driver Map Component');
  
