@@ -1,6 +1,6 @@
 import React, {Component} from "react";
 import { compose, withProps, lifecycle } from "recompose";
-import { withScriptjs, withGoogleMap, GoogleMap, Marker, DirectionsRenderer, Polyline, InfoWindow } from "react-google-maps";
+import { withScriptjs, withGoogleMap, GoogleMap, Marker, DirectionsRenderer, Polyline, InfoWindow, Circle } from "react-google-maps";
 import SearchBox from "react-google-maps/lib/components/places/SearchBox";
 import firebase from '../cloud/firebase.js';
 import {database} from '../cloud/database.js';
@@ -114,7 +114,7 @@ const MyMapComponent = compose(
     >
       <input
         type="text"
-        placeholder="Enter location here if you don't wish to use the markers"
+        placeholder="Search for particular locations"
         style={{
           boxSizing: `border-box`,
           border: `1px solid transparent`,
@@ -158,15 +158,27 @@ const MyMapComponent = compose(
         m.coordinates.map( (c, childIndex) => (
       
         <Marker key={4*parentIndex + 7*childIndex}  
-                position={{ lat: c.lat, lng: c.lng }} onClick={ (e) => {console.log(parentIndex, childIndex); console.log(e.latLng.lat())} } 
+                position={{ lat: c.lat, lng: c.lng }} onClick={ props.onMarkerClick } 
                 icon = { icons[parentIndex] } >
           
            
-            <InfoWindow key={4*parentIndex + 7*childIndex} position={{ lat: c.lat, lng: c.lng }}> 
-              <div>
-                You have {c.done ? '' : 'not'} reached this place
-              </div>
-            </InfoWindow>
+               {props.isWindowShown ? 
+                  <InfoWindow key={4*parentIndex + 7*childIndex} position={{ lat: c.lat, lng: c.lng }} > 
+                        <div style={{ backgroundColor: `yellow`, opacity: 0.75, padding: `12px` }}>
+                          <div> {m.profile.name} has {c.done ? '' : 'not'} reached this place </div> 
+                        </div>
+                  </InfoWindow> : null }
+
+            <Circle 
+              center={ { lat: c.lat, lng: c.lng } } 
+              radius={100} 
+              options={ {
+                fillColor:  c.done ? '#1350b2' : '#031430',
+                strokeColor: c.done ? '#61d8ab' : '#031430',
+                strokeOpacity: c.done ? 1.0 : 0.5,
+                strokeWeight: 1.0
+              } }
+            />
 
              
   
@@ -189,13 +201,14 @@ const MyMapComponent = compose(
     &&
     props.paths.map( (path, index) => (
       <Polyline
-  path= {path}
-  options = { {
-          geodesic: true,
-          strokeColor: colors[index],
-          strokeOpacity: 1.0,
-          strokeWeight: 2
-  } } />
+          path= {path}
+          options = { {
+                  geodesic: true,
+                  strokeColor: colors[index],
+                  strokeOpacity: 1.0,
+                  strokeWeight: 2
+                } }
+      />
     )
 
     )
@@ -215,7 +228,8 @@ const MyMapComponent = compose(
         
             <InfoWindow key={index} position={{ lat: m.currentLocation.lat, lng: m.currentLocation.lon }}> 
               <div>
-                {m.driver}
+                <img src={m.profile.uri} alt={`${m.profile.name}`} width="75" height="75"/>
+                <div>{m.profile.name}</div>
               </div>
             </InfoWindow> 
 
@@ -233,6 +247,7 @@ class DriversMap extends Component {
     super(props);
     this.state = {
       isMarkerShown: false,
+      isWindowShown: false, 
       address: '',
       geoDestination: '',
       //data: [ {currentLocation: {lat: 24.7767927372951, lon: 67.0902022139508} } ],
@@ -254,7 +269,7 @@ class DriversMap extends Component {
         
         for(var driver of drivers) {
           if( d.Drivers[driver].currentLocation ) {
-            data.push({ driver: driver, coordinates: d.Drivers[driver].coordinates, currentLocation:  d.Drivers[driver].currentLocation})
+            data.push({ driver: driver, coordinates: d.Drivers[driver].coordinates, currentLocation:  d.Drivers[driver].currentLocation, profile: d.Drivers[driver].profile})
           }
         }
         
@@ -288,7 +303,7 @@ class DriversMap extends Component {
   }
 
   handleMarkerClick = () => {
-    this.setState({ isMarkerShown: false })
+    this.setState({ isWindowShown: !this.state.isWindowShown })
     console.log('u')
     this.delayedShowMarker()
   }
@@ -309,6 +324,7 @@ class DriversMap extends Component {
     <div>
       <MyMapComponent
         isMarkerShown={this.state.isMarkerShown}
+        isWindowShown={this.state.isWindowShown}
         onMarkerClick={this.handleMarkerClick}
         onMarkerDragEnd={this.handleMarkerDrag}
         data={this.state.data}
