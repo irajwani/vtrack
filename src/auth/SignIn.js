@@ -1,113 +1,91 @@
 import React, {Component} from 'react'
 import firebase from '../cloud/firebase.js'
 import Sentry from 'react-activity/lib/Sentry';
+import Avatar from '@material-ui/core/Avatar';
+import Button from '@material-ui/core/Button';
+import CssBaseline from '@material-ui/core/CssBaseline';
+import FormControl from '@material-ui/core/FormControl';
+import Input from '@material-ui/core/Input';
+import InputLabel from '@material-ui/core/InputLabel';
+import LockIcon from '@material-ui/icons/LockOutlined';
+import Paper from '@material-ui/core/Paper';
+import Typography from '@material-ui/core/Typography';
 import 'react-activity/lib/Sentry/Sentry.css';
 import DriverDetails from '../text-input/DriverDetails.js';
+import './SignIn.css';
+import {connect} from 'react-redux'
 
-export default class SignIn extends Component {
+class SignIn extends Component {
 
     constructor(props) {
         super(props);
-        this.state = {email: '', pass: '', uid: '', loading: false, loggedIn: false, isGetting: true}
+        this.state = {email: '', pass: '',}
     }
 
-    getData(snapshot) {
-        var details;
-        details = {
-            name: 'the many faced God',
-            drivers: 'none'
-        };
-        
-        details.name = snapshot.val().name;
-        details.drivers = snapshot.val().drivers;
-        //details.attended = snapshot.val().attended
-        //console.log(details);
-        this.setState({details, isGetting: false});
-    }
-
-    getDB(snapshot) {
-        this.setState({data: snapshot.val()});
-        console.log(this.state.data);
-    }
-
-    onSignInPress() {
-        this.setState({ error: '', loading: true });
-        const { email, pass } = this.state; //now that person has input text, their email and password are here
-        firebase.auth().signInWithEmailAndPassword(email, pass)
-            .then(() => { this.setState({ error: '', loading: false });
-                          this.authChangeListener();
-                          //cant do these things:
-                          //firebase.database().ref('Users/7j2AnQgioWTXP7vhiJzjwXPOdLC3/').set({name: 'Imad Rajwani', attended: 1});
-                          }).catch(() => {
-                firebase.auth().createUserWithEmailAndPassword(email, pass)
-                    .then(() => { this.setState({ error: '', loading: false });
-                                  this.authChangeListener();  }
-                                      )
-                    .catch(() => {
-                      // console.log( 'registration error', error )
-                      // if (error.code === 'auth/email-already-in-use') {
-                      //       var credential = firebase.auth.EmailAuthProvider.credential(email, password);
-                      //
-                      //
-                      // }
-
-                      this.setState({ error: 'Authentication failed, booo hooo.', loading: false });
-                    });
-            });
-
-    }
-
-    authChangeListener() {
-
-        firebase.auth().onAuthStateChanged( (user) => {
-            if (user) {
-                var name = 'nothing here';
-                firebase.database().ref('Users/').once('value', this.getDB.bind(this), function (errorObject) {
-                    console.log("The read failed: " + errorObject.code);
-                  });
-
-                firebase.database().ref('Users/' + user.uid + '/').once('value', this.getData.bind(this), function (errorObject) {
-                    console.log("The read failed: " + errorObject.code);
-                  });
-                this.setState({uid: user.uid, loggedIn: true});
-                //console.log(this.state.name);
-                //alert(this.state.uid);
-                //return this.props.navigation.navigate('ga', {userid: this.state.uid});
-                //if (this.state.isGetting == false) {return this.props.navigation.navigate('ga', {data: this.state.data, attended: this.state.details.attended, name: this.state.details.name, userid: this.state.uid}); //abandon forced navigation. conditional render
-            
-                
-            } else {
-              alert('no user found');
-            }
-
-
-        } )
-
-
-                  }
 
     renderButtonOrLoading() {
-        if (this.state.loading) {
+        if (this.props.loading) {
             return <div>
                         <Sentry size='large' color="#0000ff"/>
                    </div>
         }
-        return <button name='Sign In' onClick={ this.onSignInPress.bind(this) } />;
+        return <Button variant="contained" color='primary' 
+                        onClick={ () => { this.props.onSignInLoading ; this.props.onSignInPress(this.state.email, this.state.pass)} } >
+                        Sign In
+                </Button>;
     }
 
+    handleEmailChange(event) {
+        this.setState({email: event.target.value})
+    }
+
+    handlePassChange(event) {
+        this.setState({pass: event.target.value})
+    }
     render() {
+
         
-        if (this.state.isGetting == false) {
-            return ( <DriverDetails name={this.state.details.name} drivers={this.state.details.drivers}/> )
+        
+        
+        if (this.props.loggedIn) {
+            return (
+                <div>Logged In</div>
+            )
         }
         else {
             return (
 
-                <div>
+                <div className="Container">
                 
-                <input value={this.state.email} onChange={ (event) => this.setState({ email: event.target.value }) } ref='email' type='text'/>
-                <input value={this.state.pass} onChange={ (event) => this.setState({ pass: event.target.value }) } ref='password' type='text'/>
-                {this.renderButtonOrLoading()}
+                <Paper >
+                    <Avatar >
+                        <LockIcon />
+                    </Avatar>
+                    <Typography variant="headline">Sign in</Typography>
+                    <form >
+                        <FormControl margin="normal" required fullWidth>
+                        <InputLabel htmlFor="email">Email Address</InputLabel>
+                        <Input id="email" name="email" 
+                            value={this.state.email} onChange={ (e) => this.handleEmailChange(e) }
+                            autoComplete="email" autoFocus />
+                        </FormControl>
+                        <FormControl margin="normal" required fullWidth>
+                        <InputLabel htmlFor="password">Password</InputLabel>
+                        <Input
+                            name="password"
+                            type="password"
+                            value={this.state.pass} onChange={ (e) => this.handlePassChange(e) }
+                            id="password"
+                            autoComplete="current-password"
+                        />
+                        </FormControl>
+                        {this.renderButtonOrLoading()}
+                    </form>
+                </Paper>
+
+                {/* <input className="AuthInput" value={this.state.email} onChange={ (e) => this.handleEmailChange(e) } ref='email' type='text'/>
+                <input className="AuthInput" value={this.state.pass} onChange={ (e) => this.handlePassChange(e)} ref='password' type='text'/>
+                {this.renderButtonOrLoading()} */}
 
 
                 </div>
@@ -117,3 +95,21 @@ export default class SignIn extends Component {
     }
 
 }
+
+// this feeds the singular store whenever the state changes
+const mapStateToProps = (state) => {
+    return {
+        loading: state.loading,
+        loggedIn: state.loggedIn,
+    }
+}
+
+//if we want a component to access the store, we need to map actions to the props
+const mapDispatchToProps = (dispatch) => {
+    return {
+        onSignInPress: (email, pass) => dispatch( {type: 'onSignInPress', email: email, pass: pass } ),
+        onSignInLoading: () => dispatch( {type: 'onSignInLoading'} )
+    }
+}
+
+export default connect(mapStateToProps, mapDispatchToProps)(SignIn)

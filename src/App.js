@@ -1,4 +1,10 @@
 import React, { Component } from 'react';
+
+import {Provider} from 'react-redux'
+import {createStore} from 'redux'
+import reducer from './store/reducer.js'
+
+
 import logo from './logo.svg';
 import './App.css';
 import { 
@@ -7,12 +13,17 @@ import {
 import CustomRouter from './CustomRouter.js'
 import {BrowserRouter as Router} from 'react-router-dom';
 import Route from 'react-router-dom/Route';
-
+import HomePage from './home/HomePage'
 import SignIn from './auth/SignIn.js';
 import DriverDetails from './text-input/DriverDetails.js'
 import MyGoogleMap from './google-map/google-map.js'
 //gmaps API key: AIzaSyAfjr1IBlIDnLlgyburjhGXb0ZLW_uemmk
 var names = []
+
+
+const store = createStore(reducer);
+
+
 class App extends Component {
   
   //Maybe I don't need to re-update the entire app every few seconds; perhaps 
@@ -39,27 +50,10 @@ class App extends Component {
   render() {
     
     return (
-      <Router>
-      <div className="App">
-        <header className="App-header">
-    
-          <img src={logo} className="App-logo" alt="logo" />
-          <h1 className="App-title">DeliveryConfirmation</h1>
-    
-        </header>
-    
-        
-        {/* <DriverDetails/>
-        
-        <CustomRouter/> */}
-        <Route path="/" exact component={SignIn}/>
-        <Route path="/Input" exact render={ () => { return ( <DriverDetails/> ) } }/>
-        <Route path="/Input/OutputMap" exact render={ () => { return ( <MyGoogleMap/> ) } }/>
-        
-        
-    
-      </div>
-      </Router>
+      <Provider store={store}>
+        <HomePage />
+      </Provider>
+      
 
       
     );

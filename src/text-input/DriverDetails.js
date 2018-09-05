@@ -259,7 +259,7 @@ class DriverDetails extends Component {
           Start Over
         </button>
         
-        <p> Welcome {this.props.name} </p>
+        
         
         <p> Please Enter the ID for: </p>
                   <ul>
