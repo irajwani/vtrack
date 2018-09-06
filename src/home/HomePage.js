@@ -10,7 +10,7 @@ class HomePage extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      loggedIn: false
+      
     }
   }
 
@@ -27,6 +27,7 @@ class HomePage extends Component {
 // this feeds the singular store whenever the state changes
 const mapStateToProps = (state) => {
   return {
+      loading: state.loading,
       loggedIn: state.loggedIn,
   }
 }
@@ -35,6 +36,7 @@ const mapStateToProps = (state) => {
 const mapDispatchToProps = (dispatch) => {
   return {
       onSignInPress: (email, pass) => dispatch( {type: 'onSignInPress', email: email, pass: pass } ),
+      
   }
 }
 

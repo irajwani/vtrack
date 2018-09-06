@@ -12,28 +12,28 @@ const reducer = (state = initialState, action) => {
     switch(action.type) {
         case 'onSignInPress' :
 
-            firebase.auth().signInWithEmailAndPassword(action.email, action.pass)
-                .then( () => {
-                    
-                    var bool = false;
-                    firebase.auth().onAuthStateChanged(
-                        (user) => {
-                            if(user) { newState.loggedIn = true; newState.loading = false;return newState} 
-                            else {console.log('no user found')}
-                        }
-                    )
-                    
-                })
-                
-                
+            newState.loading = true;
+            firebase.auth().signInWithEmailAndPassword(action.email, action.pass);
+            newState.loggedIn = true;
+            newState.loading = false;
             break;
-        case 'onSignInLoading' :
-                newState.loading = true;
-                break;
+        // firebase.auth().signInWithEmailAndPassword(action.email, action.pass)
+            //     .then( () => {
+                    
+            //         var bool = false;
+            //         firebase.auth().onAuthStateChanged(
+            //             (user) => {
+            //                 if(user) { newState.loggedIn = true; newState.loading = false; return newState} 
+            //                 else {console.log('no user found')}
+            //             }
+            //         )
+                    
+            //     })
+            // return newState;
         
         
     }
-    
+
     return newState;
     
 }

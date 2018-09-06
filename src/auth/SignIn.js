@@ -16,7 +16,8 @@ import './SignIn.css';
 import {connect} from 'react-redux'
 
 class SignIn extends Component {
-
+    //only email and password managed by the state of this component.
+    //Authentication is handled by global store which triggers this.props.loggedIn 
     constructor(props) {
         super(props);
         this.state = {email: '', pass: '',}
@@ -44,10 +45,9 @@ class SignIn extends Component {
     }
     render() {
 
+        const {loggedIn} = this.props
         
-        
-        
-        if (this.props.loggedIn) {
+        if (loggedIn) {
             return (
                 <div>Logged In</div>
             )
@@ -108,7 +108,7 @@ const mapStateToProps = (state) => {
 const mapDispatchToProps = (dispatch) => {
     return {
         onSignInPress: (email, pass) => dispatch( {type: 'onSignInPress', email: email, pass: pass } ),
-        onSignInLoading: () => dispatch( {type: 'onSignInLoading'} )
+        //onSignInLoading: () => dispatch( {type: 'onSignInLoading'} )
     }
 }
 
