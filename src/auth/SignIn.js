@@ -49,7 +49,7 @@ class SignIn extends Component {
         
         if (loggedIn) {
             return (
-                <div>Logged In</div>
+                <DriverDetails />
             )
         }
         else {

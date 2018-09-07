@@ -9,6 +9,13 @@ import 'react-select/dist/react-select.css';
 import TimeField from 'react-simple-timefield';
 import DateTimePicker from 'react-datetime-picker';
 
+import firebase from '../cloud/firebase.js';
+import {database} from '../cloud/database';
+
+import Modal from '@material-ui/core/Modal';
+import Typography from '@material-ui/core/Typography';
+import Button from '@material-ui/core/Button';
+import AddIcon from '@material-ui/icons/Add';
 //import {Redirect} from 'react-router-dom';
 
 import styles from '../Demo.css';
@@ -96,6 +103,7 @@ class DriverDetails extends Component {
   constructor(props){
     super(props);
     this.state = {
+      modalOpen: false,
       selectedDriver: '',
       selectedTime: new Date(),
       address: '',
@@ -108,13 +116,25 @@ class DriverDetails extends Component {
     }
   }
 
+  componentWillMount() {
+
+    database.then( (d) => {
+      const uid = firebase.auth().currentUser.uid;
+      var drivers = d.Users[uid].drivers ;
+      var options = this.generateOptions(drivers);
+      this.setState( {options} );
+    })
+    .catch( (error) => console.log(error))
+  }
+
+
   onDriverChange = (selectedDriver) => {
     this.setState({selectedDriver});
     console.log(selectedDriver);
   }
 
   generateOptions = (data) => {
-    var options = [];
+    var options = [{value: '', label: ''}];
     var entries = Object.entries(data);
     for(const [uid, name] of entries) {
       options.push({value: uid, label: name});
@@ -230,16 +250,13 @@ class DriverDetails extends Component {
   
                                     }
 
+  handleModal() {
+    this.setState({modalOpen: !this.state.modalOpen})
+  }
+
   render() {
-    console.log(Object.values(this.props.drivers));
-    console.log(this.state.selectedDriver.value);
-    const options = this.generateOptions(this.props.drivers);
-    // const options = [
-    //   {value: 'Imran', label: 'Imran'},
-    //   {value: 'Imdan', label: 'Imdan'},
-    // ];
-    //options.push(this.props.drivers);
-    const { selectedDriver } = this.state;
+    
+    
     if (this.state.confirmed) {
       return ( <MyGoogleMap places={this.state.data[this.state.data.length - 1].coordinates}
                             uid={this.state.selectedDriver.value}
@@ -247,18 +264,40 @@ class DriverDetails extends Component {
              )
     }
 
-    if (this.state.showDrivers) {
-      return <DriversMap />
-    }
-      return (
+
+    
+    return (
         <div>
-        <button onClick={() => this.setState({showDrivers: true})}>
-            Show Drizaivers
-        </button>
+        
         <button onClick={() => {this.startOver();} } >
           Start Over
         </button>
-        
+
+        <Button variant="contained" color='primary' 
+              onClick={ () => { this.setState({confirmed: true}) } } >
+              Assign Route to Driver
+        </Button>
+
+        <Button variant="fab" mini color="secondary" aria-label="Add" 
+          onClick={this.handleModal.bind(this)}>
+          <AddIcon />
+        </Button>
+
+        <Modal
+          aria-labelledby="simple-modal-title"
+          aria-describedby="simple-modal-description"
+          open={this.state.modalOpen}
+          onClose={this.handleModal.bind(this)}
+          >
+
+          <Typography variant="title" id="modal-title">
+              Text in a modal
+            </Typography>
+
+
+        </Modal>
+
+        <DriversMap selectedDriver = {this.state.selectedDriver.value} />
         
         
         <p> Please Enter the ID for: </p>
@@ -275,9 +314,9 @@ class DriverDetails extends Component {
                   <input ref="VehicleIDBox" type='text'/>
                   
                   <Select
-                    value={selectedDriver}
+                    value={this.state.selectedDriver}
                     onChange={this.onDriverChange}
-                    options={options}
+                    options={this.state.options}
                   />
                   <DateTimePicker
                     onChange={this.onTimeChange}
@@ -295,9 +334,11 @@ class DriverDetails extends Component {
                       value: this.state.geoDestination,
                     }}
                   />
-                  <button onClick={() => this.setState({confirmed: true})}>
-                    Confirm Selection
-                  </button>
+
+                  
+
+
+                  
                   {/* <button onClick={() => { <Redirect to="/google-map/google-map.js" /> ;}}>
                   Yo
                   </button> */}

@@ -86,16 +86,15 @@ const MyMapComponent = compose(
     },
 
     componentWillReceiveProps() {
-      this.setState( {data: this.props.data, paths: this.props.paths} )
+      this.setState( {data: this.props.data, paths: this.props.paths, selectedDriver: this.props.selectedDriver} )
     },
 
     componentDidMount() {
-      this.setState( {data: this.props.data, paths: this.props.paths} )
+      this.setState( {data: this.props.data, paths: this.props.paths, selectedDriver: this.props.selectedDriver} )
     }
 
     
   }),
-  withScriptjs,
   withGoogleMap,
     )//dot
     ((props) =>
@@ -147,7 +146,56 @@ const MyMapComponent = compose(
 
 
   
-  {  
+  {//objective markers designated to driver
+
+    props.selectedDriver ? 
+
+    props.isMarkerShown
+    &&
+    props.data.map( (m, parentIndex) => (
+  
+      
+      
+        m.coordinates.map( (c, childIndex) => (
+      
+        <Marker key={4*parentIndex + 7*childIndex}  
+                position={{ lat: c.lat, lng: c.lng }} onClick={ props.onMarkerClick } 
+                icon = { icons[parentIndex] } >
+          
+           
+               {props.isWindowShown ? 
+                  <InfoWindow key={4*parentIndex + 7*childIndex} position={{ lat: c.lat, lng: c.lng }} > 
+                        <div style={{ backgroundColor: `yellow`, opacity: 0.75, padding: `12px` }}>
+                          <div> {m.profile.name} has {c.done ? '' : 'not'} reached this place </div> 
+                        </div>
+                  </InfoWindow> : null }
+
+            <Circle 
+              center={ { lat: c.lat, lng: c.lng } } 
+              radius={100} 
+              options={ {
+                fillColor:  c.done ? '#1350b2' : 'red',
+                strokeColor: c.done ? '#61d8ab' : '#031430',
+                strokeOpacity: c.done ? 1.0 : 0.5,
+                strokeWeight: 1.0
+              } }
+            />
+
+             
+  
+          </Marker>
+  
+      )
+
+      
+      
+      )
+      
+      
+    )
+    )
+    
+    : //OR
     
     props.isMarkerShown
     &&
@@ -196,7 +244,7 @@ const MyMapComponent = compose(
   
   }
 
-  {
+  { //directionsRenderer/polyline between markers
     props.isMarkerShown
     &&
     props.paths.map( (path, index) => (
@@ -213,8 +261,9 @@ const MyMapComponent = compose(
 
     )
   }
+  
 
-  {
+  { //drivers currentLocation
     props.isMarkerShown
 
     &&
@@ -318,7 +367,7 @@ class DriversMap extends Component {
   render() {
     console.log(this.state);
     console.log('Initializing Driver Map Component');
- 
+    console.log(this.state.data);
     return (
       
     <div>
@@ -329,6 +378,7 @@ class DriversMap extends Component {
         onMarkerDragEnd={this.handleMarkerDrag}
         data={this.state.data}
         paths={this.state.paths}
+        selectedDriver={this.props.selectedDriver}
       />
       <button onClick={() => this.getDrivers() }>
        REFRESH 
