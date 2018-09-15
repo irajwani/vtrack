@@ -32,18 +32,54 @@ var colors = [
   "#dd2f18", "#06a819", "#075aba", "#c97d0c", "#c10faf", "#e04c98", "#dbd962"
 ]
 
-function renderSwitch(drivers,data) {
+function renderSwitch(selectedDrivers,data,props) {
   //can't proceed until data comes in more fluidly
-  if(drivers && data) {
-    var actualData = data.filter( (obj) => { drivers.includes(obj.profile.name)  });
-    console.log(actualData);
-    
-  }
-
-  console.log('empty')
-  console.log(drivers)
-  console.log(data)
+  var actualData;
   
+  data && selectedDrivers ? actualData = data.filter( (obj) => { return selectedDrivers.includes(obj.profile.name)  }) : console.log('loading...')
+  
+  return props.isMarkerShown && actualData.map( (m, parentIndex) => (
+  
+      
+      
+    m.coordinates.map( (c, childIndex) => (
+  
+    <Marker key={4*parentIndex + 7*childIndex}  
+            position={{ lat: c.lat, lng: c.lng }} onClick={ props.onMarkerClick } 
+            icon = { icons[parentIndex] } >
+      
+       
+           {props.isWindowShown ? 
+              <InfoWindow key={4*parentIndex + 7*childIndex} position={{ lat: c.lat, lng: c.lng }} > 
+                    <div style={{ backgroundColor: `yellow`, opacity: 0.75, padding: `12px` }}>
+                      <div> {m.profile.name} has {c.done ? '' : 'not'} reached this place </div> 
+                    </div>
+              </InfoWindow> : null }
+
+        <Circle 
+          center={ { lat: c.lat, lng: c.lng } } 
+          radius={100} 
+          options={ {
+            fillColor:  c.done ? '#1350b2' : 'red',
+            strokeColor: c.done ? '#61d8ab' : '#031430',
+            strokeOpacity: c.done ? 1.0 : 0.5,
+            strokeWeight: 1.0
+          } }
+        />
+
+         
+
+      </Marker>
+
+  )
+
+  
+  
+  )
+  
+  
+)
+)
 }
 
 const MyMapComponent = compose(
@@ -168,9 +204,9 @@ const MyMapComponent = compose(
     } */}
 
   
-  {renderSwitch(props.selectedDriver, props.data)}
+  {renderSwitch(props.selectedDriver, props.data, props)}
 
-  {//objective markers designated to driver
+  {/* {//objective markers designated to driver
 
     props.selectedDriver ? 
 
@@ -266,7 +302,7 @@ const MyMapComponent = compose(
     )
     )
   
-  }
+  } */}
 
   { //directionsRenderer/polyline between markers
     props.isMarkerShown
