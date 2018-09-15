@@ -1,0 +1,17 @@
+.paper {
+    position: 'absolute';
+    width:  10;
+    backgroundColor: #fff; 
+    padding: 4;
+  }
+
+  .formContainer {
+    display: 'flex';
+    flexWrap: 'wrap';
+  }
+
+  .textField {
+    marginLeft: 10;
+    marginRight: 10;
+    width: 200;
+  }

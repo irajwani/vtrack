@@ -4,6 +4,7 @@ import SignIn from '../auth/SignIn'
 import {connect} from 'react-redux';
 
 import './HomePage.css';
+import DriverDetails from '../text-input/DriverDetails';
 
 
 class HomePage extends Component {
@@ -15,11 +16,14 @@ class HomePage extends Component {
   }
 
   render() {
+    const {uid, loggedIn} = this.props;
+    
     return (
       <div>
-        <SignIn />
-        {this.props.loggedIn ? 'yup' : 'nope'}
+        {this.props.loggedIn ? 
+         <DriverDetails /> : <SignIn />}
       </div>
+      
     )
   }
 }
@@ -29,12 +33,14 @@ const mapStateToProps = (state) => {
   return {
       loading: state.loading,
       loggedIn: state.loggedIn,
+      uid: state.uid,
   }
 }
 
 //if we want a component to access the store, we need to map actions to the props
 const mapDispatchToProps = (dispatch) => {
   return {
+      //just a func to handle authentication, change the application state and store the UID
       onSignInPress: (email, pass) => dispatch( {type: 'onSignInPress', email: email, pass: pass } ),
       
   }

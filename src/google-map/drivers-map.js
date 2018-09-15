@@ -4,7 +4,10 @@ import { withScriptjs, withGoogleMap, GoogleMap, Marker, DirectionsRenderer, Pol
 import SearchBox from "react-google-maps/lib/components/places/SearchBox";
 import firebase from '../cloud/firebase.js';
 import {database} from '../cloud/database.js';
+import {connect} from 'react-redux';
+
 const _ = require("lodash");
+
 
 var iconURLPrefix = 'http://maps.google.com/mapfiles/ms/icons/';
 
@@ -28,6 +31,20 @@ var icons = [
 var colors = [
   "#dd2f18", "#06a819", "#075aba", "#c97d0c", "#c10faf", "#e04c98", "#dbd962"
 ]
+
+function renderSwitch(drivers,data) {
+  //can't proceed until data comes in more fluidly
+  if(drivers && data) {
+    var actualData = data.filter( (obj) => { drivers.includes(obj.profile.name)  });
+    console.log(actualData);
+    
+  }
+
+  console.log('empty')
+  console.log(drivers)
+  console.log(data)
+  
+}
 
 const MyMapComponent = compose(
   withProps({
@@ -85,13 +102,19 @@ const MyMapComponent = compose(
       })
     },
 
-    componentWillReceiveProps() {
-      this.setState( {data: this.props.data, paths: this.props.paths, selectedDriver: this.props.selectedDriver} )
+    componentDidUpdate(prevProps) {
+        if((prevProps.data !== this.props.data) && (prevProps.paths !== this.props.paths) && (prevProps.selectedDriver !== this.props.selectedDriver)) {
+          this.setState( {data: this.props.data, paths: this.props.paths, selectedDriver: this.props.selectedDriver} )
+        }
     },
 
-    componentDidMount() {
-      this.setState( {data: this.props.data, paths: this.props.paths, selectedDriver: this.props.selectedDriver} )
-    }
+    // componentWillReceiveProps() {
+    //   this.setState( {data: this.props.data, paths: this.props.paths, selectedDriver: this.props.selectedDriver} )
+    // },
+
+    // componentDidMount() {
+    //   this.setState( {data: this.props.data, paths: this.props.paths, selectedDriver: this.props.selectedDriver} )
+    // }
 
     
   }),
@@ -144,8 +167,9 @@ const MyMapComponent = compose(
             onDragEnd={props.onMarkerDragEnd} />
     } */}
 
-
   
+  {renderSwitch(props.selectedDriver, props.data)}
+
   {//objective markers designated to driver
 
     props.selectedDriver ? 
@@ -309,6 +333,7 @@ class DriversMap extends Component {
   }
 
   getDrivers() {
+      //get info to draw drivers locations etc. on map
       var uid = firebase.auth().currentUser.uid;
       var data = [];
       database.then( (d) => {
@@ -317,6 +342,7 @@ class DriversMap extends Component {
         
         
         for(var driver of drivers) {
+          console.log(driver);
           if( d.Drivers[driver].currentLocation ) {
             data.push({ driver: driver, coordinates: d.Drivers[driver].coordinates, currentLocation:  d.Drivers[driver].currentLocation, profile: d.Drivers[driver].profile})
           }
@@ -330,7 +356,7 @@ class DriversMap extends Component {
   }
 
   getPaths(data) {
-
+    //get info to draw drivers locations etc. on map
     var result = [ ];
     for(let x=0; x < data.length; x++) {
       result.push( Array(0) );
@@ -365,9 +391,11 @@ class DriversMap extends Component {
   
 
   render() {
-    console.log(this.state);
     console.log('Initializing Driver Map Component');
     console.log(this.state.data);
+    console.log(this.props.uid);
+    console.log(this.props.selectedDriver)
+    
     return (
       
     <div>
@@ -392,5 +420,24 @@ class DriversMap extends Component {
   }
 }
 
-export default DriversMap;
+// this feeds the singular store whenever the state changes
+const mapStateToProps = (state) => {
+  return {
+      loading: state.loading,
+      loggedIn: state.loggedIn,
+      uid: state.uid,
+  }
+}
+
+//if we want a component to access the store, we need to map actions to the props
+const mapDispatchToProps = (dispatch) => {
+  return {
+      //just a func to handle authentication, change the application state and store the UID
+      onSignInPress: (email, pass) => dispatch( {type: 'onSignInPress', email: email, pass: pass } ),
+      
+  }
+}
+
+export default connect(mapStateToProps, mapDispatchToProps)(DriversMap)
+
 

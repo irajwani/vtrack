@@ -4,21 +4,41 @@ import PropTypes from 'prop-types';
 import { createGeoInput } from 'react-geoinput';
 import MyGoogleMap from '../google-map/google-map.js'
 import DriversMap from '../google-map/drivers-map.js'
-import Select from 'react-select';
-import 'react-select/dist/react-select.css';
+import {connect} from 'react-redux';
 import TimeField from 'react-simple-timefield';
 import DateTimePicker from 'react-datetime-picker';
 
 import firebase from '../cloud/firebase.js';
 import {database} from '../cloud/database';
 
+import TextField from '@material-ui/core/TextField';
 import Modal from '@material-ui/core/Modal';
 import Typography from '@material-ui/core/Typography';
 import Button from '@material-ui/core/Button';
 import AddIcon from '@material-ui/icons/Add';
+import Input from '@material-ui/core/Input';
+import InputLabel from '@material-ui/core/InputLabel';
+import MenuItem from '@material-ui/core/MenuItem';
+import FormControl from '@material-ui/core/FormControl';
+import ListItemText from '@material-ui/core/ListItemText';
+import Select from '@material-ui/core/Select';
+import Checkbox from '@material-ui/core/Checkbox';
+
 //import {Redirect} from 'react-router-dom';
 
 import styles from '../Demo.css';
+import './DriverDetails.css'
+
+const ITEM_HEIGHT = 48;
+const ITEM_PADDING_TOP = 8;
+const MenuProps = {
+  PaperProps: {
+    style: {
+      maxHeight: ITEM_HEIGHT * 4.5 + ITEM_PADDING_TOP,
+      width: 250,
+    },
+  },
+};
 
 const BarebonesGeoInput = ({
   addressInput,
@@ -104,6 +124,9 @@ class DriverDetails extends Component {
     super(props);
     this.state = {
       modalOpen: false,
+      name: '',
+      car: '',
+      driver: [],
       selectedDriver: '',
       selectedTime: new Date(),
       address: '',
@@ -117,16 +140,18 @@ class DriverDetails extends Component {
   }
 
   componentWillMount() {
+    this.getDrivers();
+  }
 
+  getDrivers() {
     database.then( (d) => {
       const uid = firebase.auth().currentUser.uid;
       var drivers = d.Users[uid].drivers ;
-      var options = this.generateOptions(drivers);
-      this.setState( {options} );
+      console.log(drivers);
+      this.setState( {drivers} );
     })
     .catch( (error) => console.log(error))
   }
-
 
   onDriverChange = (selectedDriver) => {
     this.setState({selectedDriver});
@@ -152,7 +177,7 @@ class DriverDetails extends Component {
     this.setState( {selectedTime}, console.log(selectedTime) );
   }
 
-  onAddressChange = value => this.setState({ address: value })
+  onAddressChange = value => {this.setState({ address: value }); console.log(value)}
 
   onGeoDestinationChange = (val) => {
     //Account for if whether its the persons first entry with a simple length boolean
@@ -204,6 +229,7 @@ class DriverDetails extends Component {
       this.state.data[this.state.data.length - 1].coordinates.push(
          {lat: val.location.lat, lng: val.location.lng, done: false} 
         )
+
     }
 
     if (SecondLocationBoolean == 1) {
@@ -225,6 +251,9 @@ class DriverDetails extends Component {
     if (SixthLocationBoolean == 1) {
       this.state.data[this.state.data.length - 1].coordinates.push({ lat: val.location.lat, lng: val.location.lng, done: false });
     }
+
+
+
     // if (this.state.data[this.state.data.length-1].cartonID.includes(this.refs.CartonIDBox.value) == )
     
     
@@ -254,8 +283,28 @@ class DriverDetails extends Component {
     this.setState({modalOpen: !this.state.modalOpen})
   }
 
+  handleChange = name => event => {
+    this.setState({
+      [name]: event.target.value,
+    });
+  };
+
+  updateFirebase(data) {
+    var uid = firebase.auth().currentUser.uid;
+    var updates = {};
+    var postData = {name: data.name, car: data.car}
+    var newPostKey = firebase.database().ref().child(`Users/${uid}/drivers`).push().key
+    updates['/Users/' + uid + '/drivers/' + newPostKey + '/'] = postData;
+    firebase.database().ref().update(updates);
+
+    var driverUpdates = {};
+    var driverData = {coordinates: '', currentLocation: '', distance_and_duration: '', profile: {name: data.name}, time: ''}
+    updates['/Drivers/' + newPostKey + '/'] = driverData;
+    firebase.database().ref().update(updates);
+  }
+
   render() {
-    
+    console.log(this.state.drivers);
     
     if (this.state.confirmed) {
       return ( <MyGoogleMap places={this.state.data[this.state.data.length - 1].coordinates}
@@ -264,8 +313,8 @@ class DriverDetails extends Component {
              )
     }
 
-
-    
+  
+    if(this.state.drivers){
     return (
         <div>
         
@@ -290,15 +339,60 @@ class DriverDetails extends Component {
           onClose={this.handleModal.bind(this)}
           >
 
-          <Typography variant="title" id="modal-title">
-              Text in a modal
-            </Typography>
+          <form className="formContainer" noValidate autoComplete="off">
+            <TextField
+              required
+              id="name"
+              label="Name"
+              className="textField"
+              value={this.state.name}
+              onChange={this.handleChange('name')}
+              margin="normal"
+            />
+
+            <TextField
+              required
+              multiline
+              rowsMax="2"
+              id="car"
+              label="Car Model and Make"
+              className="textField"
+              value={this.state.car}
+              onChange={this.handleChange('car')}
+              margin="normal"
+            />
+
+            <Button variant="contained" color='green' 
+              onClick={ () => { this.updateFirebase(this.state) } } >
+              Create Driver Profile
+            </Button>
+
+          </form>
 
 
         </Modal>
 
-        <DriversMap selectedDriver = {this.state.selectedDriver.value} />
-        
+        <DriversMap selectedDriver ={this.state.driver} />
+
+
+        <FormControl >
+          <InputLabel htmlFor="select-multiple-checkbox">Tag</InputLabel>
+          <Select
+            multiple
+            value={this.state.driver}
+            onChange={this.handleChange('driver')}
+            input={<Input id="select-multiple-checkbox" />}
+            renderValue={selected => selected.join(', ')}
+            MenuProps={MenuProps}
+          >
+            {Object.keys(this.state.drivers).map(key => (
+              <MenuItem key={this.state.drivers[key].name} value={this.state.drivers[key].name}>
+                <Checkbox checked={this.state.driver.indexOf(this.state.drivers[key].name) > -1} />
+                <ListItemText primary={this.state.drivers[key].name} />
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
         
         <p> Please Enter the ID for: </p>
                   <ul>
@@ -313,11 +407,6 @@ class DriverDetails extends Component {
                   <input ref="CartonIDBox" type='text'/>
                   <input ref="VehicleIDBox" type='text'/>
                   
-                  <Select
-                    value={this.state.selectedDriver}
-                    onChange={this.onDriverChange}
-                    options={this.state.options}
-                  />
                   <DateTimePicker
                     onChange={this.onTimeChange}
                     value={this.state.selectedTime}
@@ -345,11 +434,34 @@ class DriverDetails extends Component {
 
         </div>
       );
+
+                }
+
+      return (<div> Loading... </div> )
       
   }
 }
 
-export default DriverDetails;
+// this feeds the singular store whenever the state changes
+const mapStateToProps = (state) => {
+  return {
+      loading: state.loading,
+      loggedIn: state.loggedIn,
+      uid: state.uid,
+  }
+}
+
+//if we want a component to access the store, we need to map actions to the props
+const mapDispatchToProps = (dispatch) => {
+  return {
+      //just a func to handle authentication, change the application state and store the UID
+      onSignInPress: (email, pass) => dispatch( {type: 'onSignInPress', email: email, pass: pass } ),
+      
+  }
+}
+
+export default connect(mapStateToProps, mapDispatchToProps)(DriverDetails);
+
 
 {/* <TimeField value={this.state.selectedTime} onChange={this.onTimeChange}
                   style = {{
