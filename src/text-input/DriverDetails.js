@@ -373,6 +373,7 @@ class DriverDetails extends Component {
         </Modal>
 
         <DriversMap selectedDriver ={this.state.driver} />
+        {/* <MyGoogleMap /> */}
 
 
         <FormControl >

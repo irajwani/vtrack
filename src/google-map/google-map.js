@@ -246,7 +246,7 @@ class MyGoogleMap extends Component {
     
     console.log('Initializing Map Component');
     console.log(this.props.places)
-
+    console.log(this.state.coords);
   
     
  

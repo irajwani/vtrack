@@ -32,7 +32,7 @@ var colors = [
   "#dd2f18", "#06a819", "#075aba", "#c97d0c", "#c10faf", "#e04c98", "#dbd962"
 ]
 
-function renderSwitch(selectedDrivers,data,props) {
+function renderMarkers(selectedDrivers,data,paths,props) {
   //can't proceed until data comes in more fluidly
   var actualData;
   
@@ -79,6 +79,38 @@ function renderSwitch(selectedDrivers,data,props) {
   
   
 )
+)
+&&
+actualData.map( (m, index) => (
+      
+  <Marker key={index} position={{ lat: m.currentLocation.lat, lng: m.currentLocation.lon }} 
+    onClick={ (e) => {console.log(e.latLng.lat())} }
+    icon = { car_icons[index] }  > 
+  
+
+    <InfoWindow key={index} position={{ lat: m.currentLocation.lat, lng: m.currentLocation.lon }}> 
+      <div>
+        <img src={m.profile.uri} alt={`${m.profile.name}`} width="75" height="75"/>
+        <div>{m.profile.name}</div>
+      </div>
+    </InfoWindow> 
+
+  </Marker>
+)
+)
+&&
+paths.map( (path, index) => (
+  <Polyline
+      path= {path}
+      options = { {
+              geodesic: true,
+              strokeColor: colors[index],
+              strokeOpacity: 1.0,
+              strokeWeight: 2
+            } }
+  />
+)
+
 )
 }
 
@@ -203,149 +235,8 @@ const MyMapComponent = compose(
             onDragEnd={props.onMarkerDragEnd} />
     } */}
 
-  
-  {renderSwitch(props.selectedDriver, props.data, props)}
-
-  {/* {//objective markers designated to driver
-
-    props.selectedDriver ? 
-
-    props.isMarkerShown
-    &&
-    props.data.map( (m, parentIndex) => (
-  
-      
-      
-        m.coordinates.map( (c, childIndex) => (
-      
-        <Marker key={4*parentIndex + 7*childIndex}  
-                position={{ lat: c.lat, lng: c.lng }} onClick={ props.onMarkerClick } 
-                icon = { icons[parentIndex] } >
-          
-           
-               {props.isWindowShown ? 
-                  <InfoWindow key={4*parentIndex + 7*childIndex} position={{ lat: c.lat, lng: c.lng }} > 
-                        <div style={{ backgroundColor: `yellow`, opacity: 0.75, padding: `12px` }}>
-                          <div> {m.profile.name} has {c.done ? '' : 'not'} reached this place </div> 
-                        </div>
-                  </InfoWindow> : null }
-
-            <Circle 
-              center={ { lat: c.lat, lng: c.lng } } 
-              radius={100} 
-              options={ {
-                fillColor:  c.done ? '#1350b2' : 'red',
-                strokeColor: c.done ? '#61d8ab' : '#031430',
-                strokeOpacity: c.done ? 1.0 : 0.5,
-                strokeWeight: 1.0
-              } }
-            />
-
-             
-  
-          </Marker>
-  
-      )
-
-      
-      
-      )
-      
-      
-    )
-    )
-    
-    : //OR
-    
-    props.isMarkerShown
-    &&
-    props.data.map( (m, parentIndex) => (
-  
-      
-      
-        m.coordinates.map( (c, childIndex) => (
-      
-        <Marker key={4*parentIndex + 7*childIndex}  
-                position={{ lat: c.lat, lng: c.lng }} onClick={ props.onMarkerClick } 
-                icon = { icons[parentIndex] } >
-          
-           
-               {props.isWindowShown ? 
-                  <InfoWindow key={4*parentIndex + 7*childIndex} position={{ lat: c.lat, lng: c.lng }} > 
-                        <div style={{ backgroundColor: `yellow`, opacity: 0.75, padding: `12px` }}>
-                          <div> {m.profile.name} has {c.done ? '' : 'not'} reached this place </div> 
-                        </div>
-                  </InfoWindow> : null }
-
-            <Circle 
-              center={ { lat: c.lat, lng: c.lng } } 
-              radius={100} 
-              options={ {
-                fillColor:  c.done ? '#1350b2' : '#031430',
-                strokeColor: c.done ? '#61d8ab' : '#031430',
-                strokeOpacity: c.done ? 1.0 : 0.5,
-                strokeWeight: 1.0
-              } }
-            />
-
-             
-  
-          </Marker>
-  
-      )
-
-      
-      
-      )
-      
-      
-    )
-    )
-  
-  } */}
-
-  { //directionsRenderer/polyline between markers
-    props.isMarkerShown
-    &&
-    props.paths.map( (path, index) => (
-      <Polyline
-          path= {path}
-          options = { {
-                  geodesic: true,
-                  strokeColor: colors[index],
-                  strokeOpacity: 1.0,
-                  strokeWeight: 2
-                } }
-      />
-    )
-
-    )
-  }
-  
-
-  { //drivers currentLocation
-    props.isMarkerShown
-
-    &&
-
-    props.data.map( (m, index) => (
-      
-          <Marker key={index} position={{ lat: m.currentLocation.lat, lng: m.currentLocation.lon }} 
-            onClick={ (e) => {console.log(e.latLng.lat())} }
-            icon = { car_icons[index] }  > 
-          
-        
-            <InfoWindow key={index} position={{ lat: m.currentLocation.lat, lng: m.currentLocation.lon }}> 
-              <div>
-                <img src={m.profile.uri} alt={`${m.profile.name}`} width="75" height="75"/>
-                <div>{m.profile.name}</div>
-              </div>
-            </InfoWindow> 
-
-          </Marker>
-    )
-    )
-  }
+    {/* objective markers and currentLocation for each driver  */}
+  {renderMarkers(props.selectedDriver, props.data, props.paths, props)}
      
 
   </GoogleMap>
@@ -390,6 +281,63 @@ class DriversMap extends Component {
         this.setState( { data, paths: this.getPaths(data) } );        
       })
   }
+
+  // getDirections(data) {
+  //   //construct polyline between successive coordinates received from gmapsDirections API
+  //   const DirectionsService = new global.google.maps.DirectionsService();
+  //     var waypts = [];
+  //     for(var i = 1; i < data[0].coordinates.length - 1; i++) {
+  //       waypts.push({
+  //         location: this.state.coords[i],
+  //         stopover: true
+  //       })
+  //     }
+  //     if(this.state.coords.length == 2) {
+  //       DirectionsService.route({ 
+  //         origin: this.state.coords[0],
+  //         destination: this.state.coords[1],
+  //         travelMode: global.google.maps.TravelMode.DRIVING,
+  //         optimizeWaypoints: this.state.optimizeBoolean,
+  //         provideRouteAlternatives: true,
+  //         drivingOptions: { departureTime: this.state.time, trafficModel: 'pessimistic' }, 
+  //         unitSystem: global.google.maps.UnitSystem.METRIC
+  //   } , (result, status) => {
+  //           if (status === global.google.maps.DirectionsStatus.OK) {
+  //               this.setState({
+  //                 directions: result,
+  //           });
+  //               console.log(result);
+  //               //database.set({ route: [result]});
+  //               //database.set({coordinates: this.state.coords})
+  //         }  else {
+  //               console.error(`error fetching directions ${result}`);
+  //   }  }
+  //   );
+  //     }
+  //     else {
+  //       DirectionsService.route({ 
+  //         origin: this.state.coords[0],
+  //         destination: this.state.coords[this.state.coords.length - 1],
+  //         waypoints: waypts,
+  //         travelMode: global.google.maps.TravelMode.DRIVING,
+  //         optimizeWaypoints: this.state.optimizeBoolean,
+  //         provideRouteAlternatives: true,
+  //         drivingOptions: { departureTime: this.state.time, trafficModel: 'pessimistic' }, 
+  //         unitSystem: global.google.maps.UnitSystem.METRIC
+  //   } , (result, status) => {
+  //           if (status === global.google.maps.DirectionsStatus.OK) {
+  //               this.setState({
+  //                 directions: result,
+  //           });
+  //               console.log(result);
+  //               //database.set({ route: [result]});
+  //               //database.set({coordinates: this.state.coords})
+  //         }  else {
+  //               console.error(`error fetching directions ${result}`);
+  //   }  }
+  //   );
+  //   } 
+  // }
 
   getPaths(data) {
     //get info to draw drivers locations etc. on map
